@@ -1,0 +1,174 @@
+local jdtls = require("jdtls")
+-- Only activate for Java files
+if vim.bo.filetype ~= "java" then
+	return
+end
+
+-- Path configurations
+local jdtls_dir = "/home/kx/sws/jdt-language-server-1.40.0-202409261450"
+local java_home = "/usr/lib/jvm/java-21-openjdk"
+local javafx_path = "/home/kx/sws/openjfx-21.0.6_linux-x64_bin-sdk/javafx-sdk-21.0.6/lib"
+
+-- Auto-detect OS config
+local os_config = "config_linux"
+
+-- Find project root
+local root_markers = { ".git", "build.gradle", "pom.xml", "settings.gradle" }
+local root_dir = require("jdtls.setup").find_root(root_markers) or vim.fn.getcwd()
+local project_name = vim.fn.fnamemodify(root_dir, ":p:h:t")
+local workspace_dir = vim.fn.stdpath("data") .. "/jdtls_workspace/" .. project_name
+vim.fn.mkdir(workspace_dir, "p")
+
+-- Get all jar files from the JavaFX lib directory
+local javafx_jars = {}
+local handle = io.popen("ls " .. javafx_path .. "/*.jar")
+if handle then
+	for file in handle:lines() do
+		table.insert(javafx_jars, file)
+	end
+	handle:close()
+end
+
+-- Extend classpath with JavaFX jars
+local classpath = {}
+for _, jar in ipairs(javafx_jars) do
+	table.insert(classpath, jar)
+end
+
+-- Main configuration
+local config = {
+	cmd = {
+		java_home .. "/bin/java",
+		"-Declipse.application=org.eclipse.jdt.ls.core.id1",
+		"-Dosgi.bundles.defaultStartLevel=4",
+		"-Declipse.product=org.eclipse.jdt.ls.core.product",
+		"-Xmx4g",
+		"--add-modules=ALL-SYSTEM",
+		"--add-opens",
+		"java.base/java.util=ALL-UNNAMED",
+		"--add-opens",
+		"java.base/java.lang=ALL-UNNAMED",
+
+		-- JavaFX support - include ALL modules
+		"--module-path",
+		javafx_path,
+		"--add-modules",
+		"javafx.controls,javafx.fxml,javafx.base,javafx.graphics,javafx.media,javafx.web,javafx.swing",
+
+		"-jar",
+		jdtls_dir .. "/plugins/org.eclipse.equinox.launcher_1.6.900.v20240613-2009.jar",
+		"-configuration",
+		jdtls_dir .. "/" .. os_config,
+		"-data",
+		workspace_dir,
+	},
+
+	root_dir = root_dir,
+
+	-- Enhanced settings for JavaFX and Gradle
+	settings = {
+		java = {
+			configuration = {
+				updateBuildConfiguration = "automatic", -- Change to automatic
+				runtimes = {
+					{
+						name = "JavaSE-21",
+						path = java_home,
+					},
+				},
+			},
+			eclipse = {
+				downloadSources = true,
+			},
+			maven = {
+				downloadSources = true,
+			},
+			implementationsCodeLens = {
+				enabled = true,
+			},
+			referencesCodeLens = {
+				enabled = true,
+			},
+			references = {
+				includeDecompiledSources = true,
+			},
+			format = {
+				enabled = true,
+			},
+			-- Add explicit project settings
+			project = {
+				referencedLibraries = javafx_jars,
+			},
+			-- Ensure Gradle integration
+			import = {
+				gradle = {
+					enabled = true,
+					wrapper = {
+						enabled = true,
+					},
+				},
+			},
+			-- Improve completion
+			completion = {
+				favoriteStaticMembers = {
+					"org.junit.Assert.*",
+					"org.junit.Assume.*",
+					"org.junit.jupiter.api.Assertions.*",
+					"org.junit.jupiter.api.Assumptions.*",
+					"org.junit.jupiter.api.DynamicContainer.*",
+					"org.junit.jupiter.api.DynamicTest.*",
+					"org.hamcrest.MatcherAssert.assertThat",
+					"org.hamcrest.Matchers.*",
+					"org.mockito.Mockito.*",
+					"javafx.application.Application.launch",
+				},
+				importOrder = {
+					"java",
+					"javax",
+					"javafx",
+					"com",
+					"org",
+					"",
+				},
+			},
+			-- Ensure source is properly configured
+			sources = {
+				organizeImports = {
+					starThreshold = 9999,
+					staticStarThreshold = 9999,
+				},
+			},
+		},
+	},
+
+	-- Extended capabilities
+	init_options = {
+		bundles = {},
+		extendedClientCapabilities = {
+			progressReportProvider = true,
+			classFileContentsSupport = true,
+			resolveAdditionalTextEditsSupport = true,
+		},
+	},
+}
+
+-- Ensure your on_attach handles JavaFX specifics if needed
+config.on_attach = function(client, bufnr)
+	-- Your keymaps and other on_attach functions
+	vim.keymap.set("n", "gD", vim.lsp.buf.declaration, { buffer = bufnr })
+	vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = bufnr })
+	vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr })
+	vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
+	-- Add more keymaps as needed
+end
+
+-- Start JDTLS
+jdtls.start_or_attach(config)
+
+-- Create user command for easy restart
+vim.api.nvim_create_user_command("JdtRestart", function()
+	vim.cmd("LspStop jdtls")
+	vim.cmd("sleep 100m") -- Give it time to stop
+	jdtls.start_or_attach(config)
+	print("JDTLS restarted!")
+end, {})
