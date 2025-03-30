@@ -34,6 +34,10 @@ return {
 					behavior = cmp.ConfirmBehavior.Replace,
 					select = true,
 				}),
+				["<CR>"] = cmp.mapping.confirm({
+					behavior = cmp.ConfirmBehavior.Replace,
+					select = true,
+				}),
 			}),
 			sources = cmp.config.sources({
 				{ name = "nvim_lsp" },
