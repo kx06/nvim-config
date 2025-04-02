@@ -5,7 +5,7 @@ local java_home = "/usr/lib/jvm/java-21-openjdk"
 local os_config = "config_linux"
 
 -- Find project root
-local root_markers = { ".git", "build.gradle", "pom.xml", "settings.gradle", "gradlew" }
+local root_markers = { ".git", "build.gradle", "pom.xml", "settings.gradle", "gradlew", "mvnw" }
 local root_dir = require("jdtls.setup").find_root(root_markers) or vim.fn.getcwd()
 local project_name = vim.fn.fnamemodify(root_dir, ":p:h:t")
 local workspace_dir = vim.fn.stdpath("data") .. "/jdtls_workspace/" .. project_name
