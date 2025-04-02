@@ -43,10 +43,6 @@ map("n", "<leader>fb", "<CMD>Telescope buffers<CR>", { desc = "Fuzzy find opened
 map("n", "<leader>fs", "<CMD>Telescope git_status<CR>", { desc = "Show git file diffs" })
 map("n", "<leader>fc", "<CMD>Telescope git_commits<CR>", { desc = "Browse git commits" })
 
--- lua/kx06/maps.lua
-
--- ... your existing maps ...
-
 -- DAP Keymaps
 map("n", "<leader>db", function()
 	require("dap").toggle_breakpoint()
