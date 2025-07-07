@@ -17,8 +17,6 @@ return {
 				"ts_ls",
 				"pyright",
 				"tailwindcss",
-				"gopls",
-				"golangci_lint_ls",
 			},
 		})
 
