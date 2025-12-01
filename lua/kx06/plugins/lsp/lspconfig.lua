@@ -48,10 +48,13 @@ return {
 		}
 
 		for _, server in ipairs(servers) do
-			vim.lsp.enable(server, {
+			vim.lsp.config(server, {
 				on_attach = on_attach,
 				capabilities = capabilities,
 			})
+		end
+		for _, server in ipairs(servers) do
+			vim.lsp.enable(server)
 		end
 	end,
 }
