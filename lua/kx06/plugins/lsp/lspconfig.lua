@@ -8,7 +8,6 @@ return {
 		{ "folke/neodev.nvim", opts = {} },
 	},
 	config = function()
-		local lspconfig = require("lspconfig")
 		local mason = require("mason")
 		local mason_lspconfig = require("mason-lspconfig")
 		local capabilities = require("cmp_nvim_lsp").default_capabilities()
@@ -49,7 +48,7 @@ return {
 		}
 
 		for _, server in ipairs(servers) do
-			lspconfig[server].setup({
+			vim.lsp.enable(server, {
 				on_attach = on_attach,
 				capabilities = capabilities,
 			})
