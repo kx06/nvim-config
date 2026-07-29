@@ -1,3 +1,20 @@
+-- Disable vim.tbl_flatten deprecation warning specifically
+if vim.deprecate then
+	local orig_deprecate = vim.deprecate
+	vim.deprecate = function(name, alt, version, plugin, backtrace)
+		if name == "vim.tbl_flatten" then
+			return
+		end
+		return orig_deprecate(name, alt, version, plugin, backtrace)
+	end
+end
+
+if vim.fn.has("nvim-0.10") == 1 then
+	rawset(vim, "tbl_flatten", function(t)
+		return vim.iter(t):flatten(math.huge):totable()
+	end)
+end
+
 local global = vim.g
 local o = vim.opt
 
