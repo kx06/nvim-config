@@ -7,8 +7,14 @@ return {
 		config = function()
 			-- Configure AstroTheme
 			require("astrotheme").setup({
-				-- Using dark style instead of day
-				style = "dark",
+				palette = "astrodark",
+				style = {
+					transparent = true,
+					inactive = true,
+					float = true,
+					neotree = true,
+					border = true,
+				},
 
 				-- Customize palette overrides
 				palette_overrides = {

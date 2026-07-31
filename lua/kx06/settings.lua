@@ -41,3 +41,9 @@ o.splitright = true
 o.splitbelow = true
 o.termguicolors = true
 o.wrap = false
+
+-- Transparency & Blend settings (90% opacity / 10% blend)
+o.winblend = 10
+o.pumblend = 10
+global.neovide_opacity = 0.9
+global.neovide_transparency = 0.9
